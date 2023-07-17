@@ -121,7 +121,7 @@ function App() {
     return (
       <div id="signin-popup">
         <button id="Google-signin" onClick={SigninWithGoogle}>
-          Sign-up
+          Sign-up!
         </button>
       </div>
     );
@@ -131,7 +131,7 @@ function App() {
     return (
       <div className="signout">
         <button id="signout" onClick={signout}>
-          Sign out
+          Sign out!
         </button>
       </div>
     );
