@@ -99,7 +99,7 @@ function App() {
         .then((result) => {
           name.textContent = "You're signed in as: " + auth.currentUser.displayName;
           username = result.user.displayName;
-          alert(username);
+          //alert(username);
         })
         .catch((error) => {
           alert("There was an error: " + error);
