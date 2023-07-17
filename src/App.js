@@ -2,7 +2,7 @@ import logo from './logo.svg';
 import './App.css';
 import { useState, useEffect } from 'react';
 import { useNavigate, BrowserRouter as Router } from 'react-router-dom';
-import { getFirestore, collection, getDocs, addDoc, onSnapshot, limit, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, addDoc, onSnapshot, limit, orderBy, query } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
@@ -35,12 +35,17 @@ function App() {
     });
   }, [user, history]);
 
+  const q = query(colRef, orderBy("createdAt", "desc"));
+
   useEffect(() => {
-    const unsubscribe = onSnapshot(colRef, (querySnapshot) => {
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       let messages = document.getElementById('messages');
       messages.innerHTML = ''; // Clear existing messages
+
+      
   
-      querySnapshot.forEach((doc) => {
+      // Reverse the order of iteration to display old messages at the top
+      querySnapshot.docs.reverse().forEach((doc) => {
         let txt = document.createElement('p');
         txt.textContent = doc.data().Username + " : " + doc.data().Message;
         messages.appendChild(txt);
@@ -49,6 +54,7 @@ function App() {
   
     return () => unsubscribe(); // Unsubscribe from the snapshot listener when component unmounts
   }, []);
+  
 
   const send = (e) => {
     e.preventDefault();
