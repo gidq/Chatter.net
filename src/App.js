@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, BrowserRouter as Router } from 'react-router-dom';
-import { getFirestore, collection, addDoc, onSnapshot, orderBy, query, getDocs,limit } from 'firebase/firestore';
-import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { getFirestore, collection, addDoc, onSnapshot, orderBy, query, getDocs, limit } from 'firebase/firestore';
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import './App.css';
@@ -16,22 +16,64 @@ const firebaseConfig = {
   measurementId: "G-R5B8DJYMB9"
 };
 
+
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const colRef = collection(db, 'messages');
 
+function open(navigate){
+  navigate("/Chatter.net/account");
+}
+
+function Account() {
+  const [profilePhotoURL, setProfilePhotoURL] = useState(auth.currentUser ? auth.currentUser.photoURL : null);
+  const [profileName, setName] = useState(auth.currentUser ? auth.currentUser.displayName : null);
+
+  const navigate = useNavigate();
+
+  const signout = () => {
+    auth.signOut();
+    navigate("/Chatter.net/");
+    const name = document.getElementById("name");
+    if (name) {
+      name.textContent = "";
+    }
+  };
+
+  return (
+    <div id="Account">
+      <div id="profileContainer">
+        {profilePhotoURL && <img src={profilePhotoURL} alt="Profile" id="accountPhoto" onClick={() => alert("change!")} />}
+        {profileName && <p>{profileName}</p>}
+      </div>
+      
+
+      <div id='btn-container'>
+        <button id="SignoutAcc" onClick={signout}>Sign Out</button>
+        <button id="BackAcc"onClick={() => navigate("/Chatter.net/")}>Back</button>
+      </div>
+
+    </div>
+  );
+}
+
 function App() {
+  const [profilePhotoURL, setProfilePhotoURL] = useState(null);
   const [user, setUser] = useState({});
-  const history = useNavigate();
-  var username;
+  const navigate = useNavigate();
+  let username;
+  
 
   useEffect(() => {
     auth.onAuthStateChanged((user) => {
       setUser(user);
+      if (user) {
+        setProfilePhotoURL(auth.currentUser.photoURL);
+      }
     });
-  }, [user, history]);
+  }, []);
 
   const q = query(colRef, orderBy("createdAt", "desc"));
 
@@ -94,26 +136,21 @@ function App() {
 
     signInWithPopup(auth, provider)
       .then((result) => {
-        name.textContent = "You're signed in as: " + auth.currentUser.displayName;
+        //name.textContent = "You're signed in as: " + auth.currentUser.displayName;
         username = result.user.displayName;
+        setProfilePhotoURL(auth.currentUser.photoURL);
       })
       .catch((error) => {
         alert("There was an error: " + error);
       });
   }
 
-  const signout = () => {
-    auth.signOut();
-    const name = document.getElementById("name");
-    if (name) {
-      name.textContent = "";
-    }
-  }
-
   if (user) {
     const name = document.getElementById("name");
+    const profile = document.getElementById("profile");
     if (name) {
-      name.textContent = "You're signed in as: " + user.displayName;
+      //name.textContent = "You're signed in as: " + user.displayName;
+      //setProfilePhotoURL(auth.currentUser.photoURL);
     }
   }
 
@@ -121,8 +158,9 @@ function App() {
     return (
       <div id="signin-popup">
         <button id="Google-signin" onClick={SigninWithGoogle}>
-          Sign-up!
+          Sign-up
         </button>
+        <div id="profile"></div>
       </div>
     );
   };
@@ -130,9 +168,8 @@ function App() {
   const Signout = () => {
     return (
       <div className="signout">
-        <button id="signout" onClick={signout}>
-          Sign out!
-        </button>
+        {/*Load the Avatar*/ }
+        {profilePhotoURL && <img src={profilePhotoURL} alt="Profile" id="photo" onClick={() => open(navigate)} />}
       </div>
     );
   };
@@ -149,15 +186,21 @@ function App() {
       <form onSubmit={send}>
         <input id="message" type="text" placeholder="Type a message" />
         <button id="send-btn" type="submit">Send</button>
-      </form>
+        </form>
     </div>
   );
 }
 
-const WrappedApp = () => (
-  <Router>
-    <App />
+function WrappedApp(){
+  return(
+    <Router>
+    <Routes>
+      <Route path="/Chatter.net/" element={<App />} />
+      <Route path="/Chatter.net/account" element={<Account />} />
+    </Routes>
   </Router>
-);
+  );
+}
+
 
 export default WrappedApp;
