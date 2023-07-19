@@ -39,6 +39,10 @@ header button{
   color: white;
   border-radius: 10px;
 }
+header button:hover{
+  scale: 1.1;
+  background-color: rgb(53, 53, 194);
+}
 #name{
   margin-top: 15px;
   align-self: center;
@@ -80,6 +84,10 @@ header button{
   border: 1px solid transparent;
   color: white;
   border-radius: 10px;
+}
+#Account button:hover{
+  scale: 1.1;
+  background-color: rgb(53, 53, 194);
 }
 #Account {
   display: grid;
