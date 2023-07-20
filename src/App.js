@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import { getFirestore, collection, addDoc, onSnapshot, orderBy, query, getDocs, limit } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, onSnapshot, orderBy, query, getDocs, limit, size } from 'firebase/firestore';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import './App.css';
+import { PaperAirplaneIcon } from '@primer/octicons-react';
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyBljxwjLOuc-257xybd3h5-TwF-vZRO5VY",
@@ -64,6 +66,14 @@ function App() {
   const [user, setUser] = useState({});
   const navigate = useNavigate();
   let username;
+  const querySnap = getDocs(query(colRef));
+  const docCount = querySnap.size;
+  
+
+
+  function alert(disc){
+    alert(disc);
+  }
   
 
   useEffect(() => {
@@ -100,30 +110,36 @@ function App() {
     let messages = document.getElementById('messages');
 
     if (user) {
-      addDoc(colRef, {
-        Message: message.value,
-        createdAt: new Date().getTime(),
-        Username: auth.currentUser.displayName
-      })
-        .then(() => {
-          message.value = '';
-
-          // Retrieve only the newest message
-          const query = query(collection(db, 'messages'), orderBy('createdAt', 'desc'), limit(1));
-
-          return getDocs(query);
+      if(message.value == ""){
+        alert("You must add content to send the message.");
+      }
+      else{
+        addDoc(colRef, {
+          Message: message.value,
+          createdAt: new Date().getTime(),
+          Username: auth.currentUser.displayName
         })
-        .then((querySnapshot) => {
-          querySnapshot.forEach((doc) => {
-            // Update the 'messages' container with the newest message
-            let txt = document.createElement('p');
-            txt.textContent = doc.data().Username + " : " + doc.data().Message;
-            messages.appendChild(txt);
+          .then(() => {
+            message.value = '';
+  
+            // Retrieve only the newest message
+            const query = query(collection(db, 'messages'), orderBy('createdAt', 'desc'), limit(1));
+  
+            return getDocs(query);
+          })
+          .then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+              // Update the 'messages' container with the newest message
+              let txt = document.createElement('p');
+              txt.textContent = doc.data().Username + " : " + doc.data().Message;
+              messages.appendChild(txt);
+            });
+          })
+          .catch((error) => {
+            console.log("Error sending message: ", error);
           });
-        })
-        .catch((error) => {
-          console.log("Error sending message: ", error);
-        });
+      }
+      
     } else {
       alert("You have to sign in to use this.");
       message.value = '';
@@ -183,9 +199,11 @@ function App() {
       </header>
 
       <div id="messages"></div>
-      <form onSubmit={send}>
+      <form id="BTN-form" onSubmit={send}>
         <input id="message" type="text" placeholder="Type a message" />
-        <button id="send-btn" type="submit">Send</button>
+        <button id="send-btn" type="submit">
+          <PaperAirplaneIcon size={16} />
+        </button>
         </form>
     </div>
   );
